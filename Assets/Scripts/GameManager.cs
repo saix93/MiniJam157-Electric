@@ -1,173 +1,109 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourSingleton<GameManager>
 {
     [Header("Config")]
     public MeasurementsConfig Measurements;
-    public DiceConfig_SO DiceConfig;
+    public List<DieTypeColorPair> DiceColors;
 
-    // [Header("3D References")]
-    // public Transform AmpsDie3DPosition;
-    // public Transform VoltsDie3DPosition;
-    // public Die3D AmpsDie3D;
-    // public Die3D VoltsDie3D;
-
-    [Header("2D References")]
-    public RectTransform Dice2DParent;
-    public Die2D Die2DPrefab;
+    [Header("References")]
+    public RectTransform DiceParent;
+    public Die DiePrefab;
+    public Ability AbilityPrefab;
+    public RectTransform AbilitiesParent;
+    public Player Player;
+    public Enemy Enemy;
     
     [Header("Parameters")]
-    public float HoursPerTurn = 1f;
     public int Turns = 3;
-    
-    [Header("Debug")]
-    public float PowerFactor = 1f;
-    
-    public float Watts;
-    public float MAh;
 
-    private List<Die2D> dice;
-    
-    public float CurrentVolts { get; private set; }
-    public float CurrentAmps { get; private set; }
-    public float PredictedVolts { get; private set; }
-    public float PredictedAmps { get; private set; }
+    public float TimeBetweenPhases = 5f;
 
-    private void Start()
-    {
-        dice = new List<Die2D>();
-        
-        foreach (var die in DiceConfig.Dice)
-        {
-            var die2D = Instantiate(Die2DPrefab, Dice2DParent);
-            die2D.LoadConfig(die);
-            die2D.Clear();
-            
-            dice.Add(die2D);
-        }
-    }
+    private bool inCombat;
+
+    private int MillisecondsBetweenPhases => (int)(TimeBetweenPhases * 1000);
+    public GamePhases CurrentPhase { get; set; }
+    public GamePhases DebugCurrentPhase;
 
     private void Update()
     {
-        PredictedVolts = CurrentVolts;
-        PredictedAmps = CurrentAmps;
+        DebugCurrentPhase = CurrentPhase;
+    }
+
+    public Color GetDieColor(DieType type)
+    {
+        return DiceColors.Find(dc => dc.Type == type).Color;
+    }
+
+    public void StartCombat()
+    {
+        inCombat = true;
+        Player.StartTurn();
+    }
+
+    private void StartEnemyTurn()
+    {
+        Enemy.StartTurn();
+    }
+
+    private async void StartResolutionPhase()
+    {
+        CurrentPhase = GamePhases.ResolutionPhase;
         
-        foreach (var die in dice)
-        {
-            if (die.CurrentSide is null) continue;
-
-            foreach (var effect in die.CurrentSide.Effects)
-            {
-                switch (effect.Type)
-                {
-                    case DieSideEffectType.None:
-                        break;
-                    case DieSideEffectType.Volts:
-                        PredictedVolts += effect.Value;
-                        break;
-                    case DieSideEffectType.Amps:
-                        PredictedAmps += effect.Value;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-        }
         
-        Watts = CalcWatts(PredictedAmps, PredictedVolts, PowerFactor);
-        MAh = CalcMilliampsPerHour(Watts * HoursPerTurn, PredictedVolts);
-
-        // if (!Use3DDice)
-        // {
-        //     AmpsDie3D.gameObject.SetActive(false);
-        //     VoltsDie3D.gameObject.SetActive(false);
-        // }
-    }
-
-    public void RollDice()
-    {
-        // if (Use3DDice)
-        // {
-        //     AmpsDie3D.ResetRigidbody();
-        //     VoltsDie3D.ResetRigidbody();
-        //
-        //     var ampsT = AmpsDie3DPosition.transform;
-        //     var voltsT = VoltsDie3DPosition.transform;
-        //
-        //     AmpsDie3D.transform.position = ampsT.position;
-        //     AmpsDie3D.transform.rotation = ampsT.rotation;
-        //     VoltsDie3D.transform.position = voltsT.position;
-        //     VoltsDie3D.transform.rotation = voltsT.rotation;
-        //
-        //     AmpsDie3D.AddForces();
-        //     VoltsDie3D.AddForces();
-        // }
-
-        foreach (var die in dice)
-        {
-            die.gameObject.SetActive(true);
-            if (die.IsBlocked) continue;
-            
-            die.Roll();
-        }
-    }
-
-    public void LockDice()
-    {
-        foreach (var die in dice)
-        {
-            foreach (var effect in die.CurrentSide.Effects)
-            {
-                switch (effect.Type)
-                {
-                    case DieSideEffectType.None:
-                        break;
-                    case DieSideEffectType.Volts:
-                        CurrentVolts += effect.Value;
-                        break;
-                    case DieSideEffectType.Amps:
-                        CurrentAmps += effect.Value;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            
-            die.Clear();
-        }
-    }
-
-    public void EndTurn()
-    {
-        ProcessLastTurn();
         
-        CurrentVolts = 0f;
-        CurrentAmps = 0f;
-        PredictedVolts = 0f;
-        PredictedAmps = 0f;
-
-        foreach (var die in dice)
+        if (inCombat)
         {
-            die.Clear();
+            await Task.Delay(MillisecondsBetweenPhases);
+            Player.StartTurn();
+        }
+        else
+        {
+            Debug.LogError($"Se acabo el combate");
         }
     }
 
-    private void ProcessLastTurn()
+    public async void EndPlayerTurn()
     {
-        // TODO
+        await Task.Delay(MillisecondsBetweenPhases);
+        StartEnemyTurn();
     }
 
-    private float CalcWatts(float amps, float volts, float powerFactor)
+    public void EndEnemyTurn()
     {
-        return amps * volts * powerFactor;
+        StartResolutionPhase();
     }
 
-    private float CalcMilliampsPerHour(float wattsPerHour, float volts)
+    public void PlayerEliminated()
     {
-        return wattsPerHour * 1000f / volts;
+        inCombat = false;
+        Debug.LogError($"You lose!");
+    }
+
+    public void EnemyEliminated()
+    {
+        inCombat = false;
+        Debug.LogError($"You win!");
+    }
+    
+    [Serializable]
+    public class DieTypeColorPair
+    {
+        public DieType Type;
+        public Color Color;
     }
 }
+
+public enum GamePhases
+{
+    Waiting,
+    DecisionPhase,
+    ResolutionPhase,
+}
+

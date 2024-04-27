@@ -192,15 +192,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'D6 (0)
-
-    3V'
+  m_text: 4
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -227,8 +225,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -279,8 +277,9 @@ GameObject:
   m_Component:
   - component: {fileID: 7399092588224763874}
   - component: {fileID: 5836090573867807060}
+  - component: {fileID: 4466626993188390179}
   m_Layer: 5
-  m_Name: Die2D
+  m_Name: Die
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -318,7 +317,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e194db25f40d820439b679b7f34b9bcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ButtonText: {fileID: 3975896005531368701}
-  ButtonImage: {fileID: 2303174731895098175}
-  BlockedColor: {r: 1, g: 0, b: 0, a: 1}
-  UnblockedColor: {r: 1, g: 1, b: 1, a: 1}
+  Image: {fileID: 2303174731895098175}
+  Label: {fileID: 3975896005531368701}
+  Sides: 6
+--- !u!114 &4466626993188390179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089976661656650325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce7ce5dd4510861438b6312157dce7cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Image: {fileID: 2303174731895098175}
