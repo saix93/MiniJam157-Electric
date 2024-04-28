@@ -43,4 +43,5 @@ public enum AbilityEffectType
     TransferEnergy,
     GenerateEnergy,
     WasteEnergy,
+    AddResistance,
 }

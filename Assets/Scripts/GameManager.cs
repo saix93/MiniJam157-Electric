@@ -3,40 +3,57 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviourSingleton<GameManager>
 {
     [Header("Config")]
-    public MeasurementsConfig Measurements;
     public List<DieTypeColorPair> DiceColors;
+    public List<EffectTypeConfig> EffectConfigs;
 
     [Header("References")]
-    public RectTransform DiceParent;
     public Die DiePrefab;
     public Ability AbilityPrefab;
     public RectTransform AbilitiesParent;
+    public TextMeshProUGUI TurnsLabel;
+    public Button EndTurnButton;
     public Player Player;
     public Enemy Enemy;
+    public GameObject WinBox;
+    public GameObject LoseBox;
     
     [Header("Parameters")]
-    public int Turns = 3;
+    public int MaxTurns = 3;
     public TimersConfig Timers;
 
-    private bool inCombat;
+    private int currentTurn;
+    private bool playerLost;
 
-    public GamePhases CurrentPhase { get; set; }
-    public GamePhases DebugCurrentPhase;
+    public bool PlayerCanGrabDice { get; private set; }
+    private GamePhases currentPhase { get; set; }
 
-    private void Update()
+    private void Start()
     {
-        DebugCurrentPhase = CurrentPhase;
+        foreach (Transform child in AbilitiesParent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        
+        StartCombat();
     }
 
     public Color GetDieColor(DieType type)
     {
         return DiceColors.Find(dc => dc.Type == type).Color;
+    }
+
+    public EffectTypeConfig GetEffectConfig(AbilityEffect effect)
+    {
+        return EffectConfigs.Find(e => e.Type == effect.Type);
     }
     
     public List<T> GetShuffledList<T>(List<T> list)
@@ -54,20 +71,27 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
         return shuffledList;
     }
 
-    public void StartCombat()
+    private void StartCombat()
     {
-        inCombat = true;
-        
-        StartCoroutine(ChangePhase(GamePhases.PlayerPhase, Timers.Player));
+        playerLost = false;
+        ChangePhase(GamePhases.PlayerPhase, 0f);
     }
 
-    private IEnumerator ChangePhase(GamePhases newPhase, float time)
+    private void ChangePhase(GamePhases newPhase, float time)
     {
-        CurrentPhase = newPhase;
+        if (playerLost) return;
+        
+        StopAllCoroutines();
+        StartCoroutine(ChangePhaseCR(newPhase, time));
+    }
 
+    private IEnumerator ChangePhaseCR(GamePhases newPhase, float time)
+    {
         yield return new WaitForSeconds(time);
+        
+        currentPhase = newPhase;
 
-        switch (CurrentPhase)
+        switch (currentPhase)
         {
             case GamePhases.Waiting:
                 break;
@@ -91,11 +115,32 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     #region Phases
     private void PlayerPhase()
     {
+        EndTurnButton.interactable = true;
+        PlayerCanGrabDice = true;
+        
+        currentTurn++;
+
+        TurnsLabel.text = $"{currentTurn} / {MaxTurns}";
+        
         Player.StartTurn();
     }
     public void EndPlayerTurn()
     {
-        StartCoroutine(ChangePhase(GamePhases.EnemyPhase, Timers.Enemy));
+        EndTurnButton.interactable = false;
+        PlayerCanGrabDice = false;
+        
+        if (currentTurn == MaxTurns)
+        {
+            TurnsLabel.text = $"Out of time!";
+            TurnsLabel.color = Color.red;
+            LoseBox.SetActive(true);
+            
+            ChangePhase(GamePhases.Lose, Timers.Lose);
+        }
+        else
+        {
+            ChangePhase(GamePhases.EnemyPhase, Timers.Enemy);
+        }
     }
 
     private void EnemyPhase()
@@ -104,37 +149,47 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     }
     public void EndEnemyTurn()
     {
-        StartCoroutine(ChangePhase(GamePhases.PlayerPhase, Timers.Player));
+        ChangePhase(GamePhases.PlayerPhase, Timers.Player);
     }
 
     private void WinPhase()
     {
-        Debug.LogError($"You win!");
+        SceneManager.LoadScene(0);
     }
 
     private void LosePhase()
     {
-        Debug.LogError($"You lose!");
+        SceneManager.LoadScene(0);
     }
     #endregion
 
-
     public void PlayerEliminated()
     {
-        inCombat = false;
-        StartCoroutine(ChangePhase(GamePhases.Lose, Timers.Lose));
+        ChangePhase(GamePhases.Lose, Timers.Lose);
+        LoseBox.SetActive(true);
+        playerLost = true;
     }
 
     public void EnemyEliminated()
     {
-        inCombat = false;
-        StartCoroutine(ChangePhase(GamePhases.Win, Timers.Win));
+        EndTurnButton.interactable = false;
+        PlayerCanGrabDice = false;
+        WinBox.SetActive(true);
+        ChangePhase(GamePhases.Win, Timers.Win);
     }
     
     [Serializable]
     public class DieTypeColorPair
     {
         public DieType Type;
+        public Color Color;
+    }
+
+    [Serializable]
+    public class EffectTypeConfig
+    {
+        public AbilityEffectType Type;
+        public Sprite Sprite;
         public Color Color;
     }
 

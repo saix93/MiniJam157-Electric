@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class Enemy : Character
 {
+    public float TimeBeforeAssignDice = 2f;
     public float TimeBeforePlayingAbilities = 2f;
     public float TimeToPlayEachDie = 1f;
     public float TimeAfterPlayingAbilities = 2f;
-    public Enemy_SO Config;
+    public List<Enemy_SO> Configs;
+
+    private Enemy_SO currentConfig;
 
     protected override void Awake()
     {
@@ -22,9 +26,19 @@ public class Enemy : Character
 
     protected override void Start()
     {
-        MaxBattery = Config.BatteryCapacity;
-        currentBattery = Config.InitialBattery;
-        DiceConfig = Config.DiceConfig;
+        currentConfig = Configs[Random.Range(0, Configs.Count - 1)];
+
+        GameManager.Instance.MaxTurns = currentConfig.MaxTurns;
+        
+        maxBattery = currentConfig.BatteryCapacity;
+        currentBattery = currentConfig.InitialBattery;
+        dicePool = currentConfig.DiceConfig;
+        abilities = new List<Ability_SO>(currentConfig.Abilities);
+        CharacterImage.sprite = currentConfig.Sprite;
+
+        NameLabel.text = currentConfig.Name;
+        
+        base.Start();
     }
 
     public override void StartTurn()
@@ -36,11 +50,11 @@ public class Enemy : Character
 
     private IEnumerator PlayTurnCR()
     {
-        yield return new WaitForSeconds(TimeBeforePlayingAbilities);
-
         var shuffledAbilities = GameManager.Instance.GetShuffledList(currentAbilities);
         foreach (var ability in shuffledAbilities)
         {
+            yield return new WaitForSeconds(TimeBeforeAssignDice);
+            
             var combination = ability.GetDiceCombination(dice);
             if (combination.Count > 0)
             {
@@ -94,7 +108,6 @@ public class Enemy : Character
     protected override void BatteryFull()
     {
         gm.EnemyEliminated();
-        Debug.LogError($"Enemy done!");
     }
 
     protected override void BatteryEmpty()

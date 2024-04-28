@@ -13,7 +13,7 @@ public class Ability : MonoBehaviour
     public GridLayoutGroup DiceBox;
     public DieSlot DieSlotPrefab;
     public RectTransform Description;
-    public TextMeshProUGUI AbilityEffectPrefab;
+    public AbilityEffectUI AbilityEffectPrefab;
     public Image ButtonImage;
     public Color FullColor;
     public Color RegularColor;
@@ -63,7 +63,8 @@ public class Ability : MonoBehaviour
         foreach (var effect in config.Effects)
         {
             var effectLabel = Instantiate(AbilityEffectPrefab, Description);
-            effectLabel.text = $"{effect.Type}: {effect.Value}";
+            var effectConfig = GameManager.Instance.GetEffectConfig(effect);
+            effectLabel.Init(effectConfig, effect);
         }
     }
 
@@ -96,6 +97,9 @@ public class Ability : MonoBehaviour
                     break;
                 case AbilityEffectType.WasteEnergy:
                     enemy.DrawPower(val);
+                    break;
+                case AbilityEffectType.AddResistance:
+                    user.AddResistance(val);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

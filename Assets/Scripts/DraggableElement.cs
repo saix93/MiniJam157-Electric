@@ -19,6 +19,8 @@ public class DraggableElement : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (!GameManager.Instance.PlayerCanGrabDice) return;
+        
         ParentAfterDrag = transform.parent;
         transform.SetParent(transform.root);
         transform.SetAsLastSibling();
@@ -28,11 +30,15 @@ public class DraggableElement : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (!GameManager.Instance.PlayerCanGrabDice) return;
+        
         transform.position = Input.mousePosition;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (!GameManager.Instance.PlayerCanGrabDice) return;
+        
         transform.SetParent(ParentAfterDrag);
         Image.raycastTarget = true;
     }

@@ -40,8 +40,10 @@ public class DieSlot : DragDropTargetElement
     public void Init(DieRequeriment newConfig)
     {
         config = newConfig;
-        
-        Image.color = GameManager.Instance.GetDieColor(config.DieType);
+
+        var color = GameManager.Instance.GetDieColor(config.DieType);
+        Image.color = color;
+        Label.color = color;
 
         switch (config.RequerimentType)
         {
@@ -64,7 +66,7 @@ public class DieSlot : DragDropTargetElement
                 Label.text = $"Even";
                 break;
             case DieRequerimentType.Any:
-                Label.text = $"+";
+                Label.text = $"Any";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
