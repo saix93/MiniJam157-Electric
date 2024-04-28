@@ -22,12 +22,10 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     
     [Header("Parameters")]
     public int Turns = 3;
-
-    public float TimeBetweenPhases = 5f;
+    public TimersConfig Timers;
 
     private bool inCombat;
 
-    private int MillisecondsBetweenPhases => (int)(TimeBetweenPhases * 1000);
     public GamePhases CurrentPhase { get; set; }
     public GamePhases DebugCurrentPhase;
 
@@ -44,52 +42,78 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     public void StartCombat()
     {
         inCombat = true;
-        Player.StartTurn();
+        
+        StartCoroutine(ChangePhase(GamePhases.PlayerPhase, Timers.Player));
     }
 
-    private void StartEnemyTurn()
+    private IEnumerator ChangePhase(GamePhases newPhase, float time)
+    {
+        CurrentPhase = newPhase;
+
+        yield return new WaitForSeconds(time);
+
+        switch (CurrentPhase)
+        {
+            case GamePhases.Waiting:
+                break;
+            case GamePhases.PlayerPhase:
+                PlayerPhase();
+                break;
+            case GamePhases.EnemyPhase:
+                EnemyPhase();
+                break;
+            case GamePhases.Win:
+                WinPhase();
+                break;
+            case GamePhases.Lose:
+                LosePhase();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    #region Phases
+    private void PlayerPhase()
+    {
+        Player.StartTurn();
+    }
+    public void EndPlayerTurn()
+    {
+        StartCoroutine(ChangePhase(GamePhases.EnemyPhase, Timers.Enemy));
+    }
+
+    private void EnemyPhase()
     {
         Enemy.StartTurn();
     }
-
-    private async void StartResolutionPhase()
-    {
-        CurrentPhase = GamePhases.ResolutionPhase;
-        
-        
-        
-        if (inCombat)
-        {
-            await Task.Delay(MillisecondsBetweenPhases);
-            Player.StartTurn();
-        }
-        else
-        {
-            Debug.LogError($"Se acabo el combate");
-        }
-    }
-
-    public async void EndPlayerTurn()
-    {
-        await Task.Delay(MillisecondsBetweenPhases);
-        StartEnemyTurn();
-    }
-
     public void EndEnemyTurn()
     {
-        StartResolutionPhase();
+        StartCoroutine(ChangePhase(GamePhases.PlayerPhase, Timers.Player));
     }
+
+    private void WinPhase()
+    {
+        Debug.LogError($"You win!");
+    }
+
+    private void LosePhase()
+    {
+        Debug.LogError($"You lose!");
+    }
+    #endregion
+
 
     public void PlayerEliminated()
     {
         inCombat = false;
-        Debug.LogError($"You lose!");
+        StartCoroutine(ChangePhase(GamePhases.Lose, Timers.Lose));
     }
 
     public void EnemyEliminated()
     {
         inCombat = false;
-        Debug.LogError($"You win!");
+        StartCoroutine(ChangePhase(GamePhases.Win, Timers.Win));
     }
     
     [Serializable]
@@ -98,12 +122,23 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
         public DieType Type;
         public Color Color;
     }
+
+    [Serializable]
+    public class TimersConfig
+    {
+        public float Player = 2f;
+        public float Enemy = 3f;
+        public float Win = 5f;
+        public float Lose = 5;
+    }
 }
 
 public enum GamePhases
 {
     Waiting,
-    DecisionPhase,
-    ResolutionPhase,
+    PlayerPhase,
+    EnemyPhase,
+    Win,
+    Lose
 }
 

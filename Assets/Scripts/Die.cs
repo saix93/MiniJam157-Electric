@@ -10,10 +10,11 @@ using Random = UnityEngine.Random;
 public class Die : MonoBehaviour
 {
     public Image Image;
-    public TextMeshProUGUI Label;
+    public List<Sprite> Sprites;
     public int Sides = 6;
 
     private GameManager gm;
+    private DraggableElement drag;
     
     public int CurrentValue { get; private set; }
     public DieType Type { get; set; }
@@ -21,6 +22,7 @@ public class Die : MonoBehaviour
     private void Awake()
     {
         gm = FindObjectOfType<GameManager>();
+        drag = GetComponent<DraggableElement>();
     }
 
     private void Start()
@@ -28,20 +30,20 @@ public class Die : MonoBehaviour
         Image.color = gm.GetDieColor(Type);
     }
 
-    private void Update()
+    public void OnClick()
     {
-        
+        ResetToOriginalParent();
     }
 
-    public void BlockButton()
+    public void ResetToOriginalParent()
     {
-        
+        drag.ResetToOriginalParent();
     }
 
     public void Roll()
     {
         CurrentValue = Random.Range(1, Sides + 1);
-        Label.text = CurrentValue.ToString();
+        Image.sprite = Sprites[CurrentValue - 1];
     }
 }
 

@@ -38,7 +38,7 @@ public class Ability : MonoBehaviour
         foreach (var die in config.Dice)
         {
             var dieSlot = Instantiate(DieSlotPrefab, DiceBox.transform);
-            dieSlot.Image.color = gm.GetDieColor(die.DieType);
+            dieSlot.Init(die);
         }
 
         foreach (var effect in config.Effects)
@@ -46,5 +46,10 @@ public class Ability : MonoBehaviour
             var effectLabel = Instantiate(AbilityEffectPrefab, Description);
             effectLabel.text = $"{effect.Value} - {effect.Type}";
         }
+    }
+
+    public void UseAbility()
+    {
+        
     }
 }

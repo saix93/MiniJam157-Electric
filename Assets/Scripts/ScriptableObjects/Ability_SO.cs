@@ -26,7 +26,8 @@ public enum DieRequerimentType
     BelowAnd,
     OverAnd,
     Odd,
-    Even
+    Even,
+    Any
 }
 
 [Serializable]

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,13 @@ public class DraggableElement : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 {
     public Image Image;
     
+    public Transform OriginalParent { get; set; }
     public Transform ParentAfterDrag { get; set; }
+
+    private void Awake()
+    {
+        OriginalParent = transform.parent;
+    }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -28,5 +35,10 @@ public class DraggableElement : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     {
         transform.SetParent(ParentAfterDrag);
         Image.raycastTarget = true;
+    }
+
+    public void ResetToOriginalParent()
+    {
+        transform.SetParent(OriginalParent);
     }
 }
