@@ -27,6 +27,7 @@ public abstract class Character : MonoBehaviour
     protected List<Die> dice;
     protected List<Ability_SO> abilities;
     protected List<Ability> currentAbilities;
+    protected List<Ability_SO> abilitiesUsedThisTurn;
     protected GameManager gm;
     
     private float batteryPercentage => (float)currentBattery / (float)maxBattery;
@@ -38,6 +39,7 @@ public abstract class Character : MonoBehaviour
         gm = FindObjectOfType<GameManager>();
         dice = new List<Die>();
         currentAbilities = new List<Ability>();
+        abilitiesUsedThisTurn = new List<Ability_SO>();
     }
 
     protected virtual void Start()
@@ -57,19 +59,20 @@ public abstract class Character : MonoBehaviour
     public virtual void StartTurn()
     {
         currentResistance = 0;
-        SpawnAbilities();
+        SpawnAbilities(abilities, MaxAbilities);
         SpawnDice();
     }
 
-    private void SpawnAbilities()
+    protected void SpawnAbilities(List<Ability_SO> abilitiesList, int abilitiesNumber)
     {
         foreach (Transform child in gm.AbilitiesParent.transform)
         {
             Destroy(child.gameObject);
         }
         currentAbilities.Clear();
+        abilitiesUsedThisTurn.Clear();
         
-        var randomAbilities = GetRandomElements(abilities, MaxAbilities);
+        var randomAbilities = GetRandomElements(abilitiesList, abilitiesNumber);
         
         foreach (var ability in randomAbilities)
         {
@@ -122,6 +125,11 @@ public abstract class Character : MonoBehaviour
     public void RemoveDice(List<Die> diceToRemove)
     {
         dice.RemoveAll(d => diceToRemove.Contains(d));
+    }
+
+    public void AddAbilityToUsed(Ability ability)
+    {
+        abilitiesUsedThisTurn.Add(ability.Config);
     }
 
     public void GainPower(int amount)

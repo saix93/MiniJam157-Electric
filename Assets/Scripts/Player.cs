@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,13 +9,17 @@ using Random = UnityEngine.Random;
 
 public class Player : Character
 {
-    public int RerollsPerTurn = 3;
-    public Button RerollButton;
-    public TextMeshProUGUI RerollButtonLabel;
+    public int DiceRerollsPerTurn = 3;
+    public int AbilityRerollsPerTurn = 1;
+    public Button DiceRerollButton;
+    public Button AbilityRerollButton;
+    public TextMeshProUGUI DiceRerollButtonLabel;
+    public TextMeshProUGUI AbilityRerollButtonLabel;
     public List<Player_SO> Configs;
 
     private Player_SO currentConfig;
-    private int currentRerolls;
+    private int currentDiceRerolls;
+    private int currentAbilitiesRerolls;
 
     protected override void Start()
     {
@@ -33,8 +38,8 @@ public class Player : Character
 
     public void RerollDice()
     {
-        currentRerolls--;
-        UpdateRerollButtonText();
+        currentDiceRerolls--;
+        UpdateRerollDiceButtonText();
         
         foreach (var die in dice)
         {
@@ -42,24 +47,53 @@ public class Player : Character
             die.Roll();
         }
 
-        if (currentRerolls == 0)
+        if (currentDiceRerolls == 0)
         {
-            RerollButton.interactable = false;
+            DiceRerollButton.interactable = false;
         }
     }
 
-    private void UpdateRerollButtonText()
+    public void RerollAbilities()
     {
-        RerollButtonLabel.text = $"Reroll ({currentRerolls})";
+        currentAbilitiesRerolls--;
+        UpdateRerollAbilitiesButtonText();
+        
+        foreach (var die in dice)
+        {
+            die.ResetToOriginalParent();
+        }
+        
+        var abilitiesList = new List<Ability_SO>(abilities)
+            .Except(currentAbilities.Where(a => a != null).Select(a => a.Config))
+            .Except(abilities.Where(a => abilitiesUsedThisTurn.Contains(a))).ToList();
+        SpawnAbilities(abilitiesList, currentAbilities.Count(a => a != null));
+
+        if (currentAbilitiesRerolls == 0)
+        {
+            AbilityRerollButton.interactable = false;
+        }
+    }
+
+    private void UpdateRerollDiceButtonText()
+    {
+        DiceRerollButtonLabel.text = $"Reroll dice ({currentDiceRerolls})";
+    }
+
+    private void UpdateRerollAbilitiesButtonText()
+    {
+        AbilityRerollButtonLabel.text = $"Reroll abilities ({currentAbilitiesRerolls})";
     }
 
     public override void StartTurn()
     {
         base.StartTurn();
 
-        currentRerolls = RerollsPerTurn;
-        UpdateRerollButtonText();
-        RerollButton.interactable = true;
+        currentDiceRerolls = DiceRerollsPerTurn;
+        currentAbilitiesRerolls = AbilityRerollsPerTurn;
+        UpdateRerollDiceButtonText();
+        UpdateRerollAbilitiesButtonText();
+        DiceRerollButton.interactable = true;
+        AbilityRerollButton.interactable = true;
     }
 
     public override void EndTurn()

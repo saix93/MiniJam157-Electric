@@ -18,9 +18,9 @@ public class Ability : MonoBehaviour
     public Color FullColor;
     public Color RegularColor;
     
-    private Ability_SO config;
     private GameManager gm;
 
+    public Ability_SO Config { get; private set; }
     public List<DieSlot> Slots { get; private set; }
     private List<Die> dice => Slots.Select(s => s.CurrentDie).ToList();
 
@@ -37,10 +37,10 @@ public class Ability : MonoBehaviour
 
     public void Init(Ability_SO newConfig)
     {
-        config = newConfig;
+        Config = newConfig;
 
-        Title.text = config.Name;
-        Border.color = config.AbilityColor;
+        Title.text = Config.Name;
+        Border.color = Config.AbilityColor;
 
         foreach (Transform child in DiceBox.transform)
         {
@@ -53,14 +53,14 @@ public class Ability : MonoBehaviour
         }
 
         Slots.Clear();
-        foreach (var die in config.Dice)
+        foreach (var die in Config.Dice)
         {
             var dieSlot = Instantiate(DieSlotPrefab, DiceBox.transform);
             dieSlot.Init(die);
             Slots.Add(dieSlot);
         }
 
-        foreach (var effect in config.Effects)
+        foreach (var effect in Config.Effects)
         {
             var effectLabel = Instantiate(AbilityEffectPrefab, Description);
             var effectConfig = GameManager.Instance.GetEffectConfig(effect);
@@ -70,6 +70,7 @@ public class Ability : MonoBehaviour
 
     public void UseAbilityPlayer()
     {
+        if (GameManager.Instance.CurrentPhase != GamePhases.PlayerPhase) return;
         UseAbility(GameManager.Instance.Player, GameManager.Instance.Enemy);
     }
 
@@ -83,7 +84,7 @@ public class Ability : MonoBehaviour
         if (!IsFull()) return;
         
         // TODO: Resolver efectos
-        foreach (var effect in config.Effects)
+        foreach (var effect in Config.Effects)
         {
             var val = effect.Value;
             switch (effect.Type)
@@ -108,6 +109,7 @@ public class Ability : MonoBehaviour
         
         Destroy(gameObject);
         user.RemoveDice(dice);
+        user.AddAbilityToUsed(this);
     }
 
     public List<int> GetDiceCombination(List<Die> dicePool)

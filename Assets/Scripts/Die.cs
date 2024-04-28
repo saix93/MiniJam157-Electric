@@ -32,6 +32,7 @@ public class Die : MonoBehaviour
 
     public void OnClick()
     {
+        if (GameManager.Instance.CurrentPhase != GamePhases.PlayerPhase) return;
         ResetToOriginalParent();
     }
 

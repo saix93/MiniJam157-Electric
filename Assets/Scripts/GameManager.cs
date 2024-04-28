@@ -21,6 +21,8 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     public RectTransform AbilitiesParent;
     public TextMeshProUGUI TurnsLabel;
     public Button EndTurnButton;
+    public Button DiceRerollButton;
+    public Button AbilityRerollButton;
     public Player Player;
     public Enemy Enemy;
     public GameObject WinBox;
@@ -34,7 +36,7 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     private bool playerLost;
 
     public bool PlayerCanGrabDice { get; private set; }
-    private GamePhases currentPhase { get; set; }
+    public GamePhases CurrentPhase { get; set; }
 
     private void Start()
     {
@@ -97,9 +99,9 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     {
         yield return new WaitForSeconds(time);
         
-        currentPhase = newPhase;
+        CurrentPhase = newPhase;
 
-        switch (currentPhase)
+        switch (CurrentPhase)
         {
             case GamePhases.Waiting:
                 break;
@@ -124,6 +126,8 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     private void PlayerPhase()
     {
         EndTurnButton.interactable = true;
+        DiceRerollButton.interactable = true;
+        AbilityRerollButton.interactable = true;
         PlayerCanGrabDice = true;
         
         currentTurn++;
@@ -135,6 +139,8 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     public void EndPlayerTurn()
     {
         EndTurnButton.interactable = false;
+        DiceRerollButton.interactable = false;
+        AbilityRerollButton.interactable = false;
         PlayerCanGrabDice = false;
         
         if (currentTurn == MaxTurns)
