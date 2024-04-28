@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public abstract class Character : MonoBehaviour
 {
@@ -16,12 +17,12 @@ public abstract class Character : MonoBehaviour
     public List<Ability_SO> Abilities;
 
     [Header("Parameters")]
-    public int DefaultAttackAmps = 2;
-    public int DefaultAttackVolts = 1;
+    public int MaxAbilities = 4;
 
     private List<DieType> dicePool;
 
     protected List<Die> dice;
+    protected List<Ability> currentAbilities;
     protected GameManager gm;
     
     private float batteryPercentage => (float)currentBattery / (float)MaxBattery;
@@ -32,6 +33,7 @@ public abstract class Character : MonoBehaviour
         gm = FindObjectOfType<GameManager>();
         dicePool = new List<DieType>(DiceConfig.Dice);
         dice = new List<Die>();
+        currentAbilities = new List<Ability>();
     }
 
     protected virtual void Start()
@@ -57,12 +59,34 @@ public abstract class Character : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+        currentAbilities.Clear();
         
-        foreach (var ability in Abilities)
+        var randomAbilities = GetRandomElements(Abilities, MaxAbilities);
+        
+        foreach (var ability in randomAbilities)
         {
             var newAbility = Instantiate(gm.AbilityPrefab, gm.AbilitiesParent);
             newAbility.Init(ability);
+            currentAbilities.Add(newAbility);
         }
+    }
+    
+    private List<T> GetRandomElements<T>(List<T> list, int n)
+    {
+        var result = new List<T>();
+        var indicesPicked = new List<int>();
+        
+        while (result.Count < n && result.Count < list.Count)
+        {
+            var randomIndex = Random.Range(0, list.Count);
+            if (!indicesPicked.Contains(randomIndex))
+            {
+                indicesPicked.Add(randomIndex);
+                result.Add(list[randomIndex]);
+            }
+        }
+        
+        return result;
     }
 
     private void SpawnDice()
@@ -83,14 +107,24 @@ public abstract class Character : MonoBehaviour
     {
         foreach (var die in dice)
         {
-            Destroy(die.gameObject);
+            if (die != null) Destroy(die.gameObject);
         }
+    }
+
+    public void RemoveDice(List<Die> diceToRemove)
+    {
+        dice.RemoveAll(d => diceToRemove.Contains(d));
     }
 
     public void GainPower(int amount)
     {
         currentBattery += amount;
         currentBattery = Mathf.Min(currentBattery, MaxBattery);
+
+        if (currentBattery == MaxBattery)
+        {
+            BatteryFull();
+        }
     }
 
     public void DrawPower(int amount)
@@ -122,5 +156,6 @@ public abstract class Character : MonoBehaviour
     }
 
     public abstract void EndTurn();
+    protected abstract void BatteryFull();
     protected abstract void BatteryEmpty();
 }

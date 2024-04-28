@@ -13,7 +13,9 @@ public class DieSlot : DragDropTargetElement
     public Transform DieContainer;
 
     private DieRequeriment config;
-    private Die currentDie => GetComponentInChildren<Die>();
+
+    public Die CurrentDie => GetComponentInChildren<Die>();
+    public bool HasDie => CurrentDie != null;
 
     protected override void Awake()
     {
@@ -30,7 +32,7 @@ public class DieSlot : DragDropTargetElement
         var requerimentsPassed = CheckRequirements(die);
         if (!requerimentsPassed) return;
 
-        if (currentDie is not null) currentDie.ResetToOriginalParent();
+        if (CurrentDie is not null) CurrentDie.ResetToOriginalParent();
 
         base.OnDrop(eventData);
     }
@@ -69,10 +71,10 @@ public class DieSlot : DragDropTargetElement
         }
     }
 
-    private bool CheckRequirements(Die die)
+    public bool CheckRequirements(Die die)
     {
-        if (die.Type != config.DieType) return false;
-
+        if (die.Type != config.DieType && config.DieType != DieType.Any) return false;
+        
         switch (config.RequerimentType)
         {
             case DieRequerimentType.Only:

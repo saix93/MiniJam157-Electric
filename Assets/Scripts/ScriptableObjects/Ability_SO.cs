@@ -7,6 +7,7 @@ using UnityEngine;
 public class Ability_SO : ScriptableObject
 {
     public string Name;
+    public Color AbilityColor;
     public List<DieRequeriment> Dice;
     public List<AbilityEffect> Effects;
 }
@@ -41,4 +42,5 @@ public enum AbilityEffectType
 {
     TransferEnergy,
     GenerateEnergy,
+    WasteEnergy,
 }

@@ -49,7 +49,7 @@ public class Die : MonoBehaviour
 
 public enum DieType
 {
-    Regular,
+    Any,
     Volts,
     Amps,
 }

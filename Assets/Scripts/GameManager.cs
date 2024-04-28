@@ -38,6 +38,21 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
     {
         return DiceColors.Find(dc => dc.Type == type).Color;
     }
+    
+    public List<T> GetShuffledList<T>(List<T> list)
+    {
+        var shuffledList = new List<T>(list);
+        
+        for (var i = 0; i < shuffledList.Count; i++)
+        {
+            var randomIndex = Random.Range(i, shuffledList.Count);
+            T temp = shuffledList[i];
+            shuffledList[i] = shuffledList[randomIndex];
+            shuffledList[randomIndex] = temp;
+        }
+        
+        return shuffledList;
+    }
 
     public void StartCombat()
     {
