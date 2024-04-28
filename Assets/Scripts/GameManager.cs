@@ -46,6 +46,14 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
         StartCombat();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
+
     public Color GetDieColor(DieType type)
     {
         return DiceColors.Find(dc => dc.Type == type).Color;
@@ -154,12 +162,12 @@ public class GameManager : MonoBehaviourSingleton<GameManager>
 
     private void WinPhase()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 
     private void LosePhase()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
     #endregion
 

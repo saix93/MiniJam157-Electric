@@ -26,7 +26,7 @@ public class Enemy : Character
 
     protected override void Start()
     {
-        currentConfig = Configs[Random.Range(0, Configs.Count - 1)];
+        currentConfig = Configs[EnemySelectionCanvas.SelectedEnemy];
 
         GameManager.Instance.MaxTurns = currentConfig.MaxTurns;
         

@@ -2,12 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EnemySelectionCanvas : MonoBehaviour
 {
     public List<Enemy_SO> Enemies;
     public EnemySelectionCharacter EnemySelectionCharacterPrefab;
     public RectTransform EnemySelectionCharacterParent;
+
+    public static int SelectedEnemy;
 
     private void Awake()
     {
@@ -26,6 +29,12 @@ public class EnemySelectionCanvas : MonoBehaviour
 
     private void OnClick(int index)
     {
-        Debug.Log($"Clicked on {index}");
+        SelectedEnemy = index;
+        SceneManager.LoadScene(2);
+    }
+
+    public void OnExit()
+    {
+        SceneManager.LoadScene(0);
     }
 }
